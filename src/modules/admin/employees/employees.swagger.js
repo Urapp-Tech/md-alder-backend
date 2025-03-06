@@ -18,10 +18,10 @@ const swagger = {
     },
   },
   create: {
-    description: 'this will create employee',
-    tags: ['ADMIN|Employee'],
-    summary: 'create employee',
-    operationId: 'CreateEmployee',
+    description: 'this will create patient',
+    tags: ['ADMIN|Patient'],
+    summary: 'create patient',
+    operationId: 'CreatePatient',
     consumes: ['multipart/form-data'],
     body: Type.Object(
       {
@@ -30,8 +30,10 @@ const swagger = {
           Type.Union([Type.String({ format: 'email' }), Type.Literal('')])
         ),
         phone: Type.String(),
-        cardNumber: Type.Optional(Type.String()),
+        gender: Type.String(),
+        age: Type.Optional(Type.String()),
         address: Type.Optional(Type.String()),
+        occupation: Type.Optional(Type.String()),
         avatar: Type.Optional(Type.Any({ isFile: true })),
       },
       { additionalProperties: false }

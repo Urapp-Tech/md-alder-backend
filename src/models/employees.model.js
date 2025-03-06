@@ -8,69 +8,61 @@ const list = async (req, params) => {
   const knex = req.knex;
 
   const promise = knex
-    .select('employee.*', 'cabin.cabin_number as cabin_name')
-    .from(`${MODULE.ADMIN.EMPLOYEE}`)
-    .leftJoin(`${MODULE.ADMIN.CABIN_ASSIGN} as assign`, function () {
-      this.on('employee.id', '=', 'assign.employee').andOn(
-        'assign.is_assign',
-        '=',
-        knex.raw('true')
-      );
-    })
-    .leftJoin(`${MODULE.ADMIN.CABIN} as cabin`, 'assign.cabin', '=', 'cabin.id')
+    .select('patient.*')
+    .from(`${MODULE.ADMIN.PATIENT}`)
     .leftJoin(
-      `${MODULE.ADMIN.EMPLOYEE_TENANT_BRANCH} as etb`,
-      'employee.id',
+      `${MODULE.ADMIN.PATIENT_TENANT_BRANCH} as ptb`,
+      'patient.id',
       '=',
-      'etb.employee'
+      'ptb.patient'
     )
     .where({
-      'employee.tenant': params.tenant,
-      'employee.is_deleted': false,
+      'patient.tenant': params.tenant,
+      'patient.is_deleted': false,
     })
     .andWhere((qb) => {
       if (params.branch) {
-        qb.andWhere('etb.branch', params.branch);
+        qb.andWhere('ptb.branch', params.branch);
       }
     })
     .andWhere((qb) => {
       if (params.search) {
-        qb.orWhere(
-          'employee.name',
+        qb.orWhere('patient.name', 'ilike', `%${params.search || ''}%`).orWhere(
+          'patient.email',
           'ilike',
           `%${params.search || ''}%`
-        ).orWhere('employee.email', 'ilike', `%${params.search || ''}%`);
+        );
       }
     })
-    .orderBy('employee.created_at', 'desc')
+    .orderBy('patient.created_at', 'desc')
     .offset(params.page * params.size)
     .limit(params.size);
 
   const countPromise = knex
     .count('* as total')
-    .from(`${MODULE.ADMIN.EMPLOYEE} as employee`)
+    .from(`${MODULE.ADMIN.PATIENT} as patient`)
     .leftJoin(
-      `${MODULE.ADMIN.EMPLOYEE_TENANT_BRANCH} as etb`,
-      'employee.id',
+      `${MODULE.ADMIN.PATIENT_TENANT_BRANCH} as ptb`,
+      'patient.id',
       '=',
-      'etb.employee'
+      'ptb.patient'
     )
     .where({
-      'employee.tenant': params.tenant,
-      'employee.is_deleted': false,
+      'patient.tenant': params.tenant,
+      'patient.is_deleted': false,
     })
     .andWhere((qb) => {
       if (params.branch) {
-        qb.andWhere('etb.branch', params.branch);
+        qb.andWhere('ptb.branch', params.branch);
       }
     })
     .andWhere((qb) => {
       if (params.search) {
-        qb.orWhere(
-          'employee.name',
+        qb.orWhere('patient.name', 'ilike', `%${params.search || ''}%`).orWhere(
+          'patient.email',
           'ilike',
           `%${params.search || ''}%`
-        ).orWhere('employee.email', 'ilike', `%${params.search || ''}%`);
+        );
       }
     });
 
@@ -103,25 +95,23 @@ const create = async (req, body, params) => {
 
   return knex.transaction(async (trx) => {
     try {
-      const existingEmployee = await trx(MODULE.ADMIN.EMPLOYEE)
+      const existingPatient = await trx(MODULE.ADMIN.PATIENT)
         .leftJoin(
-          MODULE.ADMIN.EMPLOYEE_TENANT_BRANCH,
-          'employee.id',
-          'employee_tenant_branch.employee'
+          MODULE.ADMIN.PATIENT_TENANT_BRANCH,
+          'patient.id',
+          'patient_tenant_branch.patient'
         )
         .where((builder) => {
-          if (body.email) builder.orWhere({ 'employee.email': body.email });
-          if (body.phone) builder.orWhere({ 'employee.phone': body.phone });
-          if (body.cardNumber)
-            builder.orWhere({ 'employee.card_number': body.cardNumber });
+          if (body.email) builder.orWhere({ 'patient.email': body.email });
+          if (body.phone) builder.orWhere({ 'patient.phone': body.phone });
         })
         .andWhere({
-          'employee.is_deleted': false,
-          'employee_tenant_branch.branch': params.branch,
+          'patient.is_deleted': false,
+          'patient_tenant_branch.branch': params.branch,
         })
         .first();
 
-      if (existingEmployee) {
+      if (existingPatient) {
         const errorMessage = `The Email/Phone is already registered to another patient.`;
         errorHandler(errorMessage, HTTP_STATUS.BAD_REQUEST);
       }
@@ -136,26 +126,28 @@ const create = async (req, body, params) => {
 
       const branchType = branchRecord.branchType === 'MAIN' ? 'MAIN' : 'OTHER';
 
-      const [employee] = await trx(MODULE.ADMIN.EMPLOYEE)
+      const [patient] = await trx(MODULE.ADMIN.PATIENT)
         .insert({
           name: body.name,
           email: body.email,
-          cardNumber: body.cardNumber,
+          age: body.age,
+          gender: body.gender,
           phone: body.phone,
           address: body.address,
+          occupation: body.occupation,
           avatar: body.avatar,
           tenant: params.tenant,
         })
         .returning('*');
 
-      await trx(MODULE.ADMIN.EMPLOYEE_TENANT_BRANCH).insert({
+      await trx(MODULE.ADMIN.PATIENT_TENANT_BRANCH).insert({
         tenant: params.tenant,
         branch: params.branch,
-        employee: employee.id,
+        patient: patient.id,
         type: branchType,
       });
 
-      return employee;
+      return patient;
     } catch (error) {
       errorHandler(
         `Error creating employee: ${error.message}`,
@@ -171,7 +163,7 @@ const update = async (req, body, params) => {
   /** @type {import('knex').Knex} */
   const knex = req.knex;
 
-  const existingEmployee = await knex(MODULE.ADMIN.EMPLOYEE)
+  const existingPatient = await knex(MODULE.ADMIN.EMPLOYEE)
     .leftJoin(
       MODULE.ADMIN.EMPLOYEE_TENANT_BRANCH,
       'employee.id',
@@ -190,7 +182,7 @@ const update = async (req, body, params) => {
     .andWhereNot('employee.id', params.empId)
     .first();
 
-  if (existingEmployee) {
+  if (existingPatient) {
     errorHandler(
       `An employee with the email/phone/card-number already exists.`,
       HTTP_STATUS.BAD_REQUEST
