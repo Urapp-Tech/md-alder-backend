@@ -9,9 +9,9 @@ const list = async (req, params) => {
 
   const promise = knex
     .select('patient.*')
-    .from(`${MODULE.PATIENT_USER.PATIENT}`)
+    .from(`${MODULE.PATIENT_MODULE.PATIENT}`)
     .leftJoin(
-      `${MODULE.PATIENT_USER.TENANT_BRANCH} as ptb`,
+      `${MODULE.PATIENT_MODULE.TENANT_BRANCH} as ptb`,
       'patient.id',
       '=',
       'ptb.patient'
@@ -40,9 +40,9 @@ const list = async (req, params) => {
 
   const countPromise = knex
     .count('* as total')
-    .from(`${MODULE.PATIENT_USER.PATIENT} as patient`)
+    .from(`${MODULE.PATIENT_MODULE.PATIENT} as patient`)
     .leftJoin(
-      `${MODULE.PATIENT_USER.TENANT_BRANCH} as ptb`,
+      `${MODULE.PATIENT_MODULE.TENANT_BRANCH} as ptb`,
       'patient.id',
       '=',
       'ptb.patient'
@@ -95,9 +95,9 @@ const create = async (req, body, params) => {
 
   return knex.transaction(async (trx) => {
     try {
-      const existingPatient = await trx(MODULE.PATIENT_USER.PATIENT)
+      const existingPatient = await trx(MODULE.PATIENT_MODULE.PATIENT)
         .leftJoin(
-          MODULE.PATIENT_USER.TENANT_BRANCH,
+          MODULE.PATIENT_MODULE.TENANT_BRANCH,
           'patient.id',
           'patient_tenant_branch.patient'
         )
@@ -126,7 +126,7 @@ const create = async (req, body, params) => {
 
       const branchType = branchRecord.branchType === 'MAIN' ? 'MAIN' : 'OTHER';
 
-      const [patient] = await trx(MODULE.PATIENT_USER.PATIENT)
+      const [patient] = await trx(MODULE.PATIENT_MODULE.PATIENT)
         .insert({
           name: body.name,
           email: body.email,
@@ -140,7 +140,7 @@ const create = async (req, body, params) => {
         })
         .returning('*');
 
-      await trx(MODULE.PATIENT_USER.TENANT_BRANCH).insert({
+      await trx(MODULE.PATIENT_MODULE.TENANT_BRANCH).insert({
         tenant: params.tenant,
         branch: params.branch,
         patient: patient.id,
@@ -163,9 +163,9 @@ const update = async (req, body, params) => {
   /** @type {import('knex').Knex} */
   const knex = req.knex;
 
-  const existingPatient = await knex(MODULE.PATIENT_USER.PATIENT)
+  const existingPatient = await knex(MODULE.PATIENT_MODULE.PATIENT)
     .leftJoin(
-      MODULE.PATIENT_USER.TENANT_BRANCH,
+      MODULE.PATIENT_MODULE.TENANT_BRANCH,
       'employee.id',
       'employee_tenant_branch.employee'
     )
@@ -201,7 +201,7 @@ const deleteEmp = async (req, params) => {
   /** @type {import('knex').Knex} */
   const knex = req.knex;
 
-  return knex(MODULE.PATIENT_USER.PATIENT)
+  return knex(MODULE.PATIENT_MODULE.PATIENT)
     .where('id', params.empId)
     .update({ isDeleted: true });
 };
@@ -213,9 +213,9 @@ const lov = async (req, params) => {
   try {
     const employees = await knex
       .select('employee.id', 'employee.name')
-      .from(`${MODULE.PATIENT_USER.PATIENT} as employee`)
+      .from(`${MODULE.PATIENT_MODULE.PATIENT} as employee`)
       .leftJoin(
-        `${MODULE.PATIENT_USER.TENANT_BRANCH} as etb`,
+        `${MODULE.PATIENT_MODULE.TENANT_BRANCH} as etb`,
         'employee.id',
         'etb.employee'
       )

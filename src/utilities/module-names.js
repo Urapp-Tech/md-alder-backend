@@ -27,7 +27,7 @@ export default Object.freeze({
     USER: 'back_Office_user',
     USER_TENANT_BRANCH: 'back_office_user_tenant_branch',
   }),
-  PATIENT_USER: Object.freeze({
+  PATIENT_MODULE: Object.freeze({
     PATIENT: 'patient',
     TENANT_BRANCH: 'patient_tenant_branch',
   }),

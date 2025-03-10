@@ -30,9 +30,9 @@ const activity = async (req, params) => {
     });
 
   const patientCountPromise = knex
-    .from(`${MODULE.PATIENT_USER.PATIENT} as p`)
+    .from(`${MODULE.PATIENT_MODULE.PATIENT} as p`)
     .leftJoin(
-      `${MODULE.PATIENT_USER.TENANT_BRANCH} as ptb`,
+      `${MODULE.PATIENT_MODULE.TENANT_BRANCH} as ptb`,
       'p.id',
       '=',
       'ptb.patient'
