@@ -1,4 +1,4 @@
-import model from '#models/employees.model';
+import model from '#models/patient.model';
 import HTTP_STATUS from '#utilities/http-status';
 import promiseHandler from '#utilities/promise-handler';
 import { v4 as uuidv4 } from 'uuid';

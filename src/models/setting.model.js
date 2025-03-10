@@ -16,8 +16,8 @@ const get = async (req, params) => {
       'tc.banner',
       'tc.media',
     ])
-    .from(`${MODULE.ADMIN.BRANCH} as b`)
-    .leftJoin(`${MODULE.ADMIN.TENANT_CONFIG} as tc`, 'b.tenant', 'tc.tenant')
+    .from(`${MODULE.BRANCH} as b`)
+    .leftJoin(`${MODULE.TENANT_CONFIG} as tc`, 'b.tenant', 'tc.tenant')
     .where({
       'b.tenant': params.tenant,
       'b.id': params.branch,
@@ -49,7 +49,7 @@ const update = async (req, body, params) => {
       media: body.media,
     };
 
-    await trx(`${MODULE.ADMIN.TENANT_CONFIG}`)
+    await trx(`${MODULE.TENANT_CONFIG}`)
       .where('tenant', params.tenant)
       .update(tenantUpdate);
 
@@ -60,11 +60,11 @@ const update = async (req, body, params) => {
       description: body.desc,
     };
 
-    await trx(`${MODULE.ADMIN.BRANCH}`)
+    await trx(`${MODULE.BRANCH}`)
       .where({ tenant: params.tenant, id: params.branch })
       .update(branchUpdate);
 
-    const [result] = await trx(`${MODULE.ADMIN.BRANCH} as b`)
+    const [result] = await trx(`${MODULE.BRANCH} as b`)
       .select([
         'b.name',
         'b.description',
@@ -73,7 +73,7 @@ const update = async (req, body, params) => {
         'tc.banner',
         'tc.media',
       ])
-      .leftJoin(`${MODULE.ADMIN.TENANT_CONFIG} as tc`, 'b.tenant', 'tc.tenant')
+      .leftJoin(`${MODULE.TENANT_CONFIG} as tc`, 'b.tenant', 'tc.tenant')
       .where({ 'b.tenant': params.tenant, 'b.id': params.branch });
 
     // Commit the transaction

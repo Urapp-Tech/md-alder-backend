@@ -14,9 +14,9 @@ const login = async (req) => {
 
   const promise = knex
     .select(
-      `${MODULE.ADMIN.BACK_OFFICE_USER}.*`,
+      `${MODULE.BACK_OFFICE.USER}.*`,
       knex.raw(
-        jsonBuildObject(MODULE.ADMIN.TENANT_CONFIG, [
+        jsonBuildObject(MODULE.TENANT_CONFIG, [
           'id',
           'name',
           'address',
@@ -27,15 +27,15 @@ const login = async (req) => {
         ])
       )
     )
-    .from(MODULE.ADMIN.BACK_OFFICE_USER)
+    .from(MODULE.BACK_OFFICE.USER)
     .leftJoin(
-      MODULE.ADMIN.TENANT_CONFIG,
-      `${MODULE.ADMIN.BACK_OFFICE_USER}.tenant`,
-      `${MODULE.ADMIN.TENANT_CONFIG}.tenant`
+      MODULE.TENANT_CONFIG,
+      `${MODULE.BACK_OFFICE.USER}.tenant`,
+      `${MODULE.TENANT_CONFIG}.tenant`
     )
     .where((qb) => {
-      qb.orWhere(`${MODULE.ADMIN.BACK_OFFICE_USER}.email`, req.body.identifier);
-      qb.orWhere(`${MODULE.ADMIN.BACK_OFFICE_USER}.phone`, req.body.identifier);
+      qb.orWhere(`${MODULE.BACK_OFFICE.USER}.email`, req.body.identifier);
+      qb.orWhere(`${MODULE.BACK_OFFICE.USER}.phone`, req.body.identifier);
     })
     .first();
 
@@ -64,7 +64,7 @@ const getBranchById = async (req, id) => {
 
   const promise = knex
     .select('branch')
-    .from(MODULE.ADMIN.BACK_OFFICE_USER_TENANT_BRANCH)
+    .from(MODULE.BACK_OFFICE.USER_TENANT_BRANCH)
     .where({
       backOfficeUser: id,
     });
@@ -89,9 +89,9 @@ const list = async (req, params) => {
   const knex = req.knex;
 
   const query = knex
-    .from(MODULE.ADMIN.BACK_OFFICE_USER)
+    .from(MODULE.BACK_OFFICE.USER)
     .leftJoin(
-      `${MODULE.ADMIN.BACK_OFFICE_USER_TENANT_BRANCH} as butb`,
+      `${MODULE.BACK_OFFICE.USER_TENANT_BRANCH} as butb`,
       'back_Office_user.id',
       '=',
       'butb.back_Office_user'
@@ -148,9 +148,9 @@ const create = async (req, params) => {
 
   return knex.transaction(async (trx) => {
     try {
-      const existingUser = await trx(MODULE.ADMIN.BACK_OFFICE_USER)
+      const existingUser = await trx(MODULE.BACK_OFFICE.USER)
         .leftJoin(
-          `${MODULE.ADMIN.BACK_OFFICE_USER_TENANT_BRANCH} as butb`,
+          `${MODULE.BACK_OFFICE.USER_TENANT_BRANCH} as butb`,
           'back_Office_user.id',
           'butb.back_Office_user'
         )
@@ -174,7 +174,7 @@ const create = async (req, params) => {
         );
       }
 
-      const branchRecord = await trx(MODULE.ADMIN.BRANCH)
+      const branchRecord = await trx(MODULE.BRANCH)
         .where({ id: params.branch })
         .first();
 
@@ -186,7 +186,7 @@ const create = async (req, params) => {
 
       const branchType = branchRecord.branchType === 'MAIN' ? 'MAIN' : 'OTHER';
 
-      const [backOfficeUser] = await trx(MODULE.ADMIN.BACK_OFFICE_USER)
+      const [backOfficeUser] = await trx(MODULE.BACK_OFFICE.USER)
         .insert({
           firstName: body.firstName,
           lastName: body.lastName,
@@ -200,7 +200,7 @@ const create = async (req, params) => {
         })
         .returning('*');
 
-      await trx(MODULE.ADMIN.BACK_OFFICE_USER_TENANT_BRANCH).insert({
+      await trx(MODULE.BACK_OFFICE.USER_TENANT_BRANCH).insert({
         tenant: params.tenant,
         branch: params.branch,
         backOfficeUser: backOfficeUser.id,
@@ -223,9 +223,9 @@ const update = async (req, body, params) => {
   /** @type {import('knex').Knex} */
   const knex = req.knex;
 
-  const existingUser = await knex(MODULE.ADMIN.BACK_OFFICE_USER)
+  const existingUser = await knex(MODULE.BACK_OFFICE.USER)
     .leftJoin(
-      `${MODULE.ADMIN.BACK_OFFICE_USER_TENANT_BRANCH} as butb`,
+      `${MODULE.BACK_OFFICE.USER_TENANT_BRANCH} as butb`,
       'back_Office_user.id',
       'butb.back_Office_user'
     )
@@ -248,7 +248,7 @@ const update = async (req, body, params) => {
     );
   }
 
-  const [updatedEmployee] = await knex(MODULE.ADMIN.BACK_OFFICE_USER)
+  const [updatedEmployee] = await knex(MODULE.BACK_OFFICE.USER)
     .update(body)
     .where('id', params.userId)
     .returning('*');
@@ -260,7 +260,7 @@ const deleteUser = async (req, params) => {
   /** @type {import('knex').Knex} */
   const knex = req.knex;
 
-  return knex(MODULE.ADMIN.BACK_OFFICE_USER)
+  return knex(MODULE.BACK_OFFICE.USER)
     .where('id', params.userId)
     .update({ isDeleted: true });
 };

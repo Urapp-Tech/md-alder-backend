@@ -12,16 +12,16 @@ const get = async (req, params) => {
   }
   const promise = knex
     .select(
-      `${MODULE.ADMIN.SYSTEM_CONFIG}.*`,
+      `${MODULE.SYSTEM_CONFIG}.*`,
       `tc.logo as tenant_logo`,
       `tc.banner as tenant_banner`
     )
     .leftJoin(
-      `${MODULE.ADMIN.TENANT_CONFIG} as tc`,
+      `${MODULE.TENANT_CONFIG} as tc`,
       'tc.tenant',
-      `${MODULE.ADMIN.SYSTEM_CONFIG}.tenant`
+      `${MODULE.SYSTEM_CONFIG}.tenant`
     )
-    .from(MODULE.ADMIN.SYSTEM_CONFIG)
+    .from(MODULE.SYSTEM_CONFIG)
     .where({
       domain: params.domain,
     })

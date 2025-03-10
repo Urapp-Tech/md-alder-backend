@@ -21,7 +21,7 @@ const activity = async (req, params) => {
 
   const doctorCountPromise = knex
     .count('* as total')
-    .from(`${MODULE.ADMIN.DOCTOR}`)
+    .from(`${MODULE.DOCTOR}`)
     .where({
       tenant,
       // branch,
@@ -30,9 +30,9 @@ const activity = async (req, params) => {
     });
 
   const patientCountPromise = knex
-    .from(`${MODULE.ADMIN.PATIENT} as p`)
+    .from(`${MODULE.PATIENT_USER.PATIENT} as p`)
     .leftJoin(
-      `${MODULE.ADMIN.PATIENT_TENANT_BRANCH} as ptb`,
+      `${MODULE.PATIENT_USER.TENANT_BRANCH} as ptb`,
       'p.id',
       '=',
       'ptb.patient'
