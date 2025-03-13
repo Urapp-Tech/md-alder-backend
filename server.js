@@ -23,6 +23,7 @@ import fastifyCORS from '@fastify/cors';
 import fastifyEnv from '@fastify/env';
 import fastifyFormbody from '@fastify/formbody';
 import fastifyMultipart from '@fastify/multipart';
+import fastifyOtp from '#plugins/otp.plugin';
 import fastifyRedis from '@fastify/redis';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
@@ -79,6 +80,8 @@ await server.register(fastifySwagger, swaggerConfig());
 await server.register(fastifySwaggerUi, swaggerUIConfig());
 
 await server.register(fastifyLogger, loggerConfig());
+
+await server.register(fastifyOtp);
 
 await server.register(
   fastifyPlugin((instance) => {

@@ -50,6 +50,8 @@
     "fastify-rabbitmq": "^3.1.0",
     "knex": "^3.1.0",
     "lodash": "^4.17.21",
+    "nodemailer": "^6.10.0",
+    "nodemailer-sendgrid-transport": "^0.2.0",
     "pg": "^8.13.1",
     "uuid": "^11.0.4",
     "winston": "^3.17.0",

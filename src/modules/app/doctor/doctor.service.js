@@ -1,6 +1,8 @@
-import model from '#models/app-user.model';
+import model from '#models/doctor.model';
+import tenantConfigModel from '#models/tenant-config.model';
 import generateUserTokens from '#utilities/generate-user-tokens';
 import HTTP_STATUS from '#utilities/http-status';
+import { sendSignUpMail } from '#utilities/node-mailer';
 import promiseHandler from '#utilities/promise-handler';
 import createRedisFunctions from '#utilities/redis-helpers';
 import {
@@ -96,9 +98,29 @@ const list = async (req, params) => {
   };
 };
 
-const create = async (req, params) => {
-  const promise = model.create(req, params);
+const create = async (req) => {
+  const body = req.body;
+  delete req.body;
+  const isCorrectOTP = await req.otp.verify(req.body.email, req.body.otp);
+  if (!isCorrectOTP) {
+    const err = new Error(`Invalid otp, please check the otp.`);
+    err.code = error.code ?? HTTP_STATUS.INTERNAL_SERVER_ERROR;
+    throw err;
+  }
 
+  const newPassword = await req.bcrypt.hash(body.password);
+
+  const newData = {
+    firstName: body.firstName,
+    lastName: body.lastName,
+    email: body.email,
+    username: body.email,
+    password: newPassword,
+    phone: body.phone,
+    tenant: req.params.tenant,
+  };
+
+  const promise = model.create(req, newData);
   const [error, result] = await promiseHandler(promise);
   if (error) {
     const err = new Error(error.detail ?? error.message);
@@ -113,8 +135,30 @@ const create = async (req, params) => {
   };
 };
 
-const update = async (req, params) => {
-  const promise = model.update(req, req.body, params);
+const update = async (req) => {
+  const body = req.body;
+  const newData = {
+    ...body,
+    experience:
+      body.experience && body.experience.length
+        ? JSON.stringify(body.experience)
+        : undefined,
+    skill:
+      body.skill && body.skill.length ? JSON.stringify(body.skill) : undefined,
+    languages:
+      body.languages && body.languages.length
+        ? JSON.stringify(body.languages)
+        : undefined,
+    socialMedia:
+      body.socialMedia && body.socialMedia.length
+        ? JSON.stringify(body.socialMedia)
+        : undefined,
+    schedule:
+      body.schedule && body.schedule.length
+        ? JSON.stringify(body.schedule)
+        : undefined,
+  };
+  const promise = model.update(req, newData);
 
   const [error, result] = await promiseHandler(promise);
   if (error) {
@@ -148,6 +192,47 @@ const deleteUser = async (req, params) => {
   };
 };
 
+const getOtp = async (req) => {
+  const findEmail = model.findByEmail(req, req.body.email);
+
+  const [error, result] = await promiseHandler(findEmail);
+  if (error) {
+    const err = new Error(error.detail ?? error.message);
+    err.code = error.code ?? HTTP_STATUS.INTERNAL_SERVER_ERROR;
+    throw err;
+  }
+  if (result) {
+    const err = new Error('email already exist');
+    err.code = error.code ?? HTTP_STATUS.CONFLICT;
+    throw err;
+  }
+  const tenantConfigPromise = tenantConfigModel.getTenantConfigByTenantId(
+    req,
+    req.params.tenant
+  );
+
+  const [tenantConfigError, tenantConfigResult] =
+    await promiseHandler(tenantConfigPromise);
+  if (tenantConfigError) {
+    const err = new Error(error.detail ?? error.message);
+    err.code = error.code ?? HTTP_STATUS.INTERNAL_SERVER_ERROR;
+    throw err;
+  }
+
+  const otp = await req.otp.get(req.body.email);
+  tenantConfigResult.email = req.body.email;
+  const sentMessageInfo = await sendSignUpMail(req, tenantConfigResult, otp);
+  if (!sentMessageInfo) {
+    const err = new Error('Unable to send email, please check the payload.');
+    err.code = HTTP_STATUS.INTERNAL_SERVER_ERROR;
+    throw err;
+  }
+  return {
+    code: HTTP_STATUS.OK,
+    message: 'email sent successfully.',
+  };
+};
+
 export default {
   login,
   logout,
@@ -155,4 +240,5 @@ export default {
   create,
   update,
   deleteUser,
+  getOtp,
 };

@@ -1,7 +1,7 @@
-import userRoutes from './user/user.routes.js';
+import doctorRoutes from './doctor/doctor.routes.js';
 
 const appRoutes = (fastify, options, done) => {
-  fastify.register(userRoutes, { prefix: '/user' });
+  fastify.register(doctorRoutes, { prefix: '/doctor' });
 
   done();
 };
