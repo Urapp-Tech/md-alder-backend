@@ -1,7 +1,7 @@
-import controller from './employees.controller.js';
-import schema from './employees.swagger.js';
+import controller from './form-field.controller.js';
+import schema from './form-field.swagger.js';
 
-const employeeRoutes = (fastify, options, done) => {
+const formFieldsRoutes = (fastify, options, done) => {
   fastify.get(
     '/list',
     { schema: schema.list, onRequest: [fastify.authenticateAccess] },
@@ -13,14 +13,14 @@ const employeeRoutes = (fastify, options, done) => {
     controller.create
   );
   fastify.post(
-    '/update/:empId',
+    '/update/:id',
     { schema: schema.update, onRequest: [fastify.authenticateAccess] },
     controller.update
   );
   fastify.post(
-    '/delete/:empId',
+    '/delete/:id',
     { schema: schema.delete, onRequest: [fastify.authenticateAccess] },
-    controller.deleteEmp
+    controller.deleteField
   );
   fastify.get(
     '/lov',
@@ -31,4 +31,4 @@ const employeeRoutes = (fastify, options, done) => {
   done();
 };
 
-export default employeeRoutes;
+export default formFieldsRoutes;

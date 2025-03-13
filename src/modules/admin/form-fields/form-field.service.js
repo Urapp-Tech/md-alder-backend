@@ -1,7 +1,7 @@
-import model from '#models/patient.model';
+import model from '#models/form-field.model';
 import HTTP_STATUS from '#utilities/http-status';
 import promiseHandler from '#utilities/promise-handler';
-import { v4 as uuidv4 } from 'uuid';
+// import { v4 as uuidv4 } from 'uuid';
 
 const list = async (req, params) => {
   const promise = model.list(req, params);
@@ -22,24 +22,8 @@ const list = async (req, params) => {
 };
 
 const create = async (req, params) => {
-  let logoUrl;
-  if (req.body.avatar) {
-    const fileData = {
-      Key: `menu/${uuidv4()}-${req.body.avatar.filename}`,
-      Body: req.body.avatar.buffer,
-      'Content-Type': req.body.avatar.mimetype,
-    };
-    try {
-      logoUrl = await req.s3Upload(fileData);
-    } catch (error) {
-      throw new Error(`Failed to upload logo to S3 ${error.message}`);
-    }
-  }
-  const updatedData = {
-    ...req.body,
-    avatar: logoUrl,
-  };
-  const promise = model.create(req, updatedData, params);
+  const newBody = { ...req.body, tenant: params.tenant };
+  const promise = model.create(req, newBody);
 
   const [error, result] = await promiseHandler(promise);
   if (error) {
@@ -50,31 +34,15 @@ const create = async (req, params) => {
 
   return {
     code: HTTP_STATUS.OK,
-    message: 'Employee has been created successfully.',
+    message: 'Form Field has been created successfully.',
     data: { ...result },
   };
 };
 
 const update = async (req, params) => {
-  let logoUrl;
-  if (req.body.avatar) {
-    const fileData = {
-      Key: `menu/${uuidv4()}-${req.body.avatar.filename}`,
-      Body: req.body.avatar.buffer,
-      'Content-Type': req.body.avatar.mimetype,
-    };
-    try {
-      logoUrl = await req.s3Upload(fileData);
-    } catch (error) {
-      throw new Error(`Failed to upload logo to S3 ${error.message}`);
-    }
-  }
-  const updatedData = {
-    ...req.body,
-    avatar: logoUrl,
-  };
+  // const newBody = { ...req.body };
 
-  const promise = model.update(req, updatedData, params);
+  const promise = model.update(req, req.body, params);
 
   const [error, result] = await promiseHandler(promise);
   if (error) {
@@ -91,8 +59,8 @@ const update = async (req, params) => {
   };
 };
 
-const deleteEmp = async (req, params) => {
-  const promise = model.deleteEmp(req, params);
+const deleteField = async (req, params) => {
+  const promise = model.deleteField(req, params);
 
   const [error, result] = await promiseHandler(promise);
   if (error) {
@@ -126,4 +94,4 @@ const lov = async (req, params) => {
   };
 };
 
-export default { list, create, update, deleteEmp, lov };
+export default { list, create, update, deleteField, lov };

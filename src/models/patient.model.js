@@ -116,7 +116,7 @@ const create = async (req, body, params) => {
         errorHandler(errorMessage, HTTP_STATUS.BAD_REQUEST);
       }
 
-      const branchRecord = await trx(MODULE.ADMIN.BRANCH)
+      const branchRecord = await trx(MODULE.BRANCH)
         .where({ id: params.branch })
         .first();
 
@@ -129,10 +129,10 @@ const create = async (req, body, params) => {
       const [patient] = await trx(MODULE.PATIENT_MODULE.PATIENT)
         .insert({
           name: body.name,
-          email: body.email,
+          email: body.email || null,
           age: body.age,
           gender: body.gender,
-          phone: body.phone,
+          phone: body.phone || null,
           address: body.address,
           occupation: body.occupation,
           avatar: body.avatar,
@@ -239,10 +239,95 @@ const lov = async (req, params) => {
   }
 };
 
+const listVisit = async (req, params) => {
+  /** @type {import('knex').Knex} */
+  const knex = req.knex;
+
+  const promise = knex
+    .select('*')
+    .from(`${MODULE.PATIENT_MODULE.VISIT_HISTORY}`)
+    .where({
+      tenant: params.tenant,
+      patient: params.patient,
+      isDeleted: false,
+    })
+    .andWhere((qb) => {
+      if (params.search) {
+        qb.orWhere(
+          'chief_complaint',
+          'ilike',
+          `%${params.search || ''}%`
+        ).orWhere('medical_note', 'ilike', `%${params.search || ''}%`);
+      }
+    })
+    .orderBy('created_at', 'desc')
+    .offset(params.page * params.size)
+    .limit(params.size);
+
+  const countPromise = knex
+    .count('* as total')
+    .from(`${MODULE.PATIENT_MODULE.VISIT_HISTORY}`)
+    .where({
+      tenant: params.tenant,
+      patient: params.patient,
+      isDeleted: false,
+    })
+    .andWhere((qb) => {
+      if (params.search) {
+        qb.orWhere(
+          'chief_complaint',
+          'ilike',
+          `%${params.search || ''}%`
+        ).orWhere('medical_note', 'ilike', `%${params.search || ''}%`);
+      }
+    });
+
+  const [error, result] = await promiseHandler(promise);
+  const [countError, countResult] = await promiseHandler(countPromise);
+
+  if (error || countError) {
+    const newError = new Error(`something went wrong`);
+    newError.detail = `something went wrong`;
+    newError.code = HTTP_STATUS.INTERNAL_SERVER_ERROR;
+    throw newError;
+  }
+
+  if (!result || !countResult) {
+    const newError = new Error(`No employee found`);
+    newError.detail = `No employee found`;
+    newError.code = HTTP_STATUS.BAD_REQUEST;
+    throw newError;
+  }
+
+  return {
+    list: result,
+    total: Number(countResult[0].total),
+  };
+};
+
+const createVisit = async (req, body) => {
+  /** @type {import('knex').Knex} */
+  const knex = req.knex;
+  try {
+    const [patientVisit] = await knex(MODULE.PATIENT_MODULE.VISIT_HISTORY)
+      .insert(body)
+      .returning('*');
+
+    return patientVisit;
+  } catch (error) {
+    errorHandler(
+      `Error creating employee: ${error.message}`,
+      HTTP_STATUS.BAD_REQUEST
+    );
+  }
+};
+
 export default {
   list,
   create,
   update,
   deleteEmp,
   lov,
+  listVisit,
+  createVisit,
 };

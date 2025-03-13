@@ -87,6 +87,57 @@ const swagger = {
       operationId: 'FetchEmployeeLov',
     },
   },
+  listVisit: {
+    schema: {
+      description: `this will list Patient visits`,
+      tags: ['ADMIN|PatientVisits'],
+      summary: `patient visits with pagination`,
+      operationId: 'FetchPatientVisits',
+      querystring: Type.Object(
+        {
+          patient: Type.String(),
+          page: Type.Integer({ default: 0, minimum: 0 }),
+          size: Type.Integer({ default: 10, minimum: 10 }),
+          search: Type.Optional(Type.String()),
+        },
+        { additionalProperties: false }
+      ),
+    },
+  },
+  createVisit: {
+    description: 'this will create patient visit',
+    tags: ['ADMIN|Patient-Visit'],
+    summary: 'create patient visit',
+    operationId: 'CreatePatientVisit',
+    consumes: ['multipart/form-data'],
+    body: Type.Object(
+      {
+        patient: Type.String(),
+        medicalNote: Type.Optional(Type.String()),
+        chiefComplaint: Type.String(),
+        complaintType: Type.String(),
+        symptoms: Type.Optional(Type.String()),
+        diagnose: Type.Optional(Type.String()),
+        differentialDiagnose: Type.Optional(Type.String()),
+        complaintDurationStartTime: Type.Optional(Type.String()),
+        complaintDurationEndTime: Type.Optional(Type.String()),
+        complaintFollowUpTime: Type.Optional(Type.String()),
+        prescriptions: Type.Optional(Type.String()),
+        cbc: Type.Optional(Type.Boolean()),
+        uce: Type.Optional(Type.Boolean()),
+        lft: Type.Optional(Type.Boolean()),
+        urineDr: Type.Optional(Type.Boolean()),
+        biopsy: Type.Optional(Type.Boolean()),
+        radiology: Type.Optional(Type.Boolean()),
+        otherLabsDesc: Type.Optional(Type.String()),
+        imgCaption1: Type.Optional(Type.String()),
+        imgCaption2: Type.Optional(Type.String()),
+        imgCaption3: Type.Optional(Type.String()),
+        avatar: Type.Optional(Type.Any({ isFile: true })),
+      },
+      { additionalProperties: false }
+    ),
+  },
 };
 
 export default swagger;

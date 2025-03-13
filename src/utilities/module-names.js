@@ -30,9 +30,11 @@ export default Object.freeze({
   PATIENT_MODULE: Object.freeze({
     PATIENT: 'patient',
     TENANT_BRANCH: 'patient_tenant_branch',
+    VISIT_HISTORY: 'patient_visit_history',
   }),
   SYSTEM_CONFIG: 'system_config',
   BRANCH: 'branch',
   TENANT_CONFIG: 'tenant_config',
   DOCTOR: 'doctor',
+  FORM_FIELDS: 'form_fields',
 });

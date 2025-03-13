@@ -1,11 +1,12 @@
 import backOfficeUserRoutes from './back-office-user/back-office-user.routes.js';
 import cabinRoutes from './cabins/cabins.routes.js';
 import dashboardRoutes from './dashboard/dashboard.routes.js';
-import patientRoutes from './employees/employees.routes.js';
+import patientRoutes from './patient/patient.routes.js';
 import operationCategoryItemsRoutes from './operation-category-items/operation-category-items.routes.js';
 import operationCategoryRoutes from './operation-category/operation-category.routes.js';
 import operationReportRoutes from './operation-report/operation-report.routes.js';
 import settingRoutes from './setting/setting.routes.js';
+import formFieldsRoutes from './form-fields/form-field.routes.js';
 
 const adminRoutes = (fastify, options, done) => {
   fastify.register(backOfficeUserRoutes, { prefix: '/back-office-user' });
@@ -18,6 +19,7 @@ const adminRoutes = (fastify, options, done) => {
     prefix: '/operation-category-item',
   });
   fastify.register(operationReportRoutes, { prefix: '/operation-report' });
+  fastify.register(formFieldsRoutes, { prefix: '/form-field' });
 
   done();
 };
