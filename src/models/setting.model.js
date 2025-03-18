@@ -15,9 +15,12 @@ const get = async (req, params) => {
       'tc.logo',
       'tc.banner',
       'tc.media',
+      'sc.theme',
+      'sc.assign_themes',
     ])
     .from(`${MODULE.BRANCH} as b`)
     .leftJoin(`${MODULE.TENANT_CONFIG} as tc`, 'b.tenant', 'tc.tenant')
+    .leftJoin(`${MODULE.SYSTEM_CONFIG} as sc`, 'b.tenant', 'sc.tenant')
     .where({
       'b.tenant': params.tenant,
       'b.id': params.branch,

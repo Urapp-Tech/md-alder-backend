@@ -138,6 +138,23 @@ const swagger = {
       { additionalProperties: false }
     ),
   },
+  previousVisit: {
+    schema: {
+      description: `this will list Patient previous visits`,
+      tags: ['ADMIN|PatientPreviousVisits'],
+      summary: `patient previous visits with pagination`,
+      operationId: 'FetchPatientPreviousVisits',
+      querystring: Type.Object(
+        {
+          patient: Type.String(),
+          page: Type.Integer({ default: 0, minimum: 0 }),
+          size: Type.Integer({ default: 10, minimum: 10 }),
+          search: Type.Optional(Type.String()),
+        },
+        { additionalProperties: false }
+      ),
+    },
+  },
 };
 
 export default swagger;

@@ -202,4 +202,31 @@ const createVisit = async (req, params) => {
   };
 };
 
-export default { list, create, update, deleteEmp, lov, listVisit, createVisit };
+const previousVisit = async (req, params) => {
+  const promise = model.previousVisit(req, params);
+
+  const [error, result] = await promiseHandler(promise);
+  if (error) {
+    const err = new Error(error.detail ?? error.message);
+    err.code = error.code ?? HTTP_STATUS.INTERNAL_SERVER_ERROR;
+    throw err;
+  }
+  // console.log('response: ', result);
+
+  return {
+    code: HTTP_STATUS.OK,
+    message: 'Data has been fetched successfully.',
+    data: result,
+  };
+};
+
+export default {
+  list,
+  create,
+  update,
+  deleteEmp,
+  lov,
+  listVisit,
+  createVisit,
+  previousVisit,
+};

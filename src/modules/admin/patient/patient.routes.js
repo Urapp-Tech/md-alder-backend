@@ -42,6 +42,12 @@ const patientRoutes = (fastify, options, done) => {
     controller.createVisit
   );
 
+  fastify.get(
+    '/visit/previous',
+    { schema: schema.previousVisit, onRequest: [fastify.authenticateAccess] },
+    controller.previousVisit
+  );
+
   done();
 };
 

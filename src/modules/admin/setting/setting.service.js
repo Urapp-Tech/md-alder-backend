@@ -65,7 +65,6 @@ const update = async (req, params) => {
     throw err;
   }
 
-  // console.log('ressss', result);
   return {
     code: HTTP_STATUS.OK,
     message: 'Setting has been updated successfully.',
