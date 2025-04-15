@@ -24,7 +24,7 @@
 
 export default Object.freeze({
   BACK_OFFICE: Object.freeze({
-    USER: 'back_Office_user',
+    USER: 'back_office_user',
     USER_TENANT_BRANCH: 'back_office_user_tenant_branch',
   }),
   PATIENT_MODULE: Object.freeze({
@@ -37,4 +37,5 @@ export default Object.freeze({
   TENANT_CONFIG: 'tenant_config',
   DOCTOR: 'doctor',
   FORM_FIELDS: 'form_fields',
+  THEME: 'theme',
 });

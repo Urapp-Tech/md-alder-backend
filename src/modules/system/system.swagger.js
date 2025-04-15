@@ -13,6 +13,9 @@ const swagger = {
       { additionalProperties: false }
     ),
   },
+  defaultTheme: {
+    schema: { hide: true },
+  },
 };
 
 export default swagger;

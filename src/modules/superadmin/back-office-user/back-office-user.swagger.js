@@ -2,14 +2,14 @@ import { Type } from '@sinclair/typebox';
 
 const swagger = {
   login: {
-    description: 'this will sign in back office user',
+    description: 'this will sign in back office super user',
     tags: ['ADMIN|Back Office User'],
     summary: 'sign in back office user',
     operationId: 'backOfficeUserSignIn',
     body: Type.Object(
       {
-        identifier: Type.String(),
-        password: Type.String(),
+        username: Type.String(),
+        password: Type.String({ minLength: 8 }),
       },
       { additionalProperties: false }
     ),
@@ -58,6 +58,46 @@ const swagger = {
         phone: Type.String(),
         address: Type.Optional(Type.String()),
         userType: Type.String(),
+      },
+      { additionalProperties: false }
+    ),
+  },
+  docCreate: {
+    description: 'this will create doctor user',
+    tags: ['ADMIN|DoctorUser'],
+    summary: 'create doctor user',
+    consumes: ['multipart/form-data'],
+    operationId: 'CreateDoctorUser',
+    body: Type.Object(
+      {
+        firstName: Type.String(),
+        lastName: Type.String(),
+        email: Type.String({ format: 'email' }),
+        password: Type.String({
+          pattern: '^[a-zA-Z0-9]{3,30}$',
+        }),
+        phone: Type.String(),
+        address: Type.Optional(Type.String()),
+        // userType: Type.String(),
+        avatar: Type.Optional(Type.Any({ isFile: true })),
+        country: Type.Optional(Type.String()),
+        state: Type.Optional(Type.String()),
+        city: Type.Optional(Type.String()),
+        zipCode: Type.Optional(Type.String()),
+        role: Type.Optional(Type.String()),
+        gender: Type.String(),
+        designation: Type.Optional(Type.String()),
+        expertise: Type.Optional(Type.String()),
+        boardCertification: Type.Optional(Type.String()),
+        college: Type.Optional(Type.String()),
+        university: Type.Optional(Type.String()),
+        fellowship: Type.Optional(Type.String()),
+        bio: Type.Optional(Type.String()),
+        experience: Type.Optional(Type.String()),
+        skill: Type.Optional(Type.String()),
+        languages: Type.Optional(Type.String()),
+        socialMedia: Type.Optional(Type.String()),
+        addDateTime: Type.Optional(Type.String()),
       },
       { additionalProperties: false }
     ),

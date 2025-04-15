@@ -155,7 +155,6 @@ const createVisit = async (req, params) => {
     req.body.imgCaption2 || '',
     req.body.imgCaption3 || '',
   ];
-  console.log('req.body', req.body);
 
   if (avatarFiles.length) {
     try {

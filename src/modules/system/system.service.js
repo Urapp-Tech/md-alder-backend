@@ -19,6 +19,26 @@ const get = async (req, params) => {
   };
 };
 
+const defaultTheme = async (req, params) => {
+  const promise = model.defaultTheme(req, params);
+
+  const [error, result] = await promiseHandler(promise);
+
+  console.log('resss theme', result);
+
+  if (error) {
+    const err = new Error(error.detail ?? error.message);
+    err.code = error.code ?? HTTP_STATUS.INTERNAL_SERVER_ERROR;
+    throw err;
+  }
+  return {
+    code: HTTP_STATUS.OK,
+    message: 'System Config has been fetched successfully.',
+    data: result,
+  };
+};
+
 export default {
   get,
+  defaultTheme,
 };

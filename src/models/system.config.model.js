@@ -36,6 +36,12 @@ const get = async (req, params) => {
   return result;
 };
 
+const defaultTheme = async (req) => {
+  const theme = req.knex(MODULE.THEME).where('key', 'DEFAULT').first();
+  return theme;
+};
+
 export default {
   get,
+  defaultTheme,
 };
