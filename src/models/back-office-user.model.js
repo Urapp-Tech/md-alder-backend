@@ -55,7 +55,35 @@ const login = async (req) => {
     throw newError;
   }
 
-  return result;
+  const role = await knex(MODULE.ROLE)
+    .select('id', 'name')
+    .where('id', result.role)
+    .first();
+
+  // Step 3: Get active parent permissions (for that role)
+  let permissions = [];
+  if (role) {
+    permissions = await knex(MODULE.PERMISSION)
+      .select('permission.*')
+      .join(
+        MODULE.ROLE_PERMISSION,
+        `${MODULE.ROLE_PERMISSION}.permission`,
+        '=',
+        `${MODULE.PERMISSION}.id`
+      )
+      .where(`${MODULE.ROLE_PERMISSION}.role`, role.id)
+      .whereNotNull(`${MODULE.PERMISSION}.permission_parent`)
+      .andWhere(`${MODULE.ROLE_PERMISSION}.is_active`, true);
+  }
+
+  return {
+    ...result,
+    role: {
+      id: role?.id,
+      name: role?.name,
+      permissions: permissions,
+    },
+  };
 };
 
 const superAdminLogin = async (req) => {
