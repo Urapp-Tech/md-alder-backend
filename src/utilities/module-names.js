@@ -38,4 +38,7 @@ export default Object.freeze({
   DOCTOR: 'doctor',
   FORM_FIELDS: 'form_fields',
   THEME: 'theme',
+  PERMISSION: 'permission',
+  ROLE: 'role',
+  ROLE_PERMISSION: 'role_permission',
 });

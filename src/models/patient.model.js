@@ -7,78 +7,97 @@ const list = async (req, params) => {
   /** @type {import('knex').Knex} */
   const knex = req.knex;
 
-  const promise = knex
+  const {
+    tenant,
+    id,
+    search,
+    page = 0,
+    size = 10,
+    startDate,
+    endDate,
+  } = params;
+
+  const baseQuery = knex
     .select('patient.*')
-    .from(`${MODULE.PATIENT_MODULE.PATIENT}`)
+    .from(`${MODULE.PATIENT_MODULE.PATIENT} as patient`)
     .leftJoin(
-      `${MODULE.PATIENT_MODULE.TENANT_BRANCH} as ptb`,
-      'patient.id',
-      '=',
-      'ptb.patient'
+      `${MODULE.BACK_OFFICE.USER} as bou`,
+      'patient.back_office_user',
+      'bou.id'
     )
     .where({
-      'patient.tenant': params.tenant,
+      'patient.tenant': tenant,
       'patient.is_deleted': false,
-    })
-    .andWhere((qb) => {
-      if (params.branch) {
-        qb.andWhere('ptb.branch', params.branch);
-      }
-    })
-    .andWhere((qb) => {
-      if (params.search) {
-        qb.orWhere('patient.name', 'ilike', `%${params.search || ''}%`).orWhere(
-          'patient.email',
-          'ilike',
-          `%${params.search || ''}%`
-        );
-      }
-    })
-    .orderBy('patient.created_at', 'desc')
-    .offset(params.page * params.size)
-    .limit(params.size);
+      'patient.is_active': true,
+    });
 
-  const countPromise = knex
+  if (id) {
+    baseQuery.andWhere('bou.id', id);
+  }
+
+  if (search) {
+    baseQuery.andWhere((qb) => {
+      qb.where('patient.name', 'ilike', `%${search}%`).orWhere(
+        'patient.email',
+        'ilike',
+        `%${search}%`
+      );
+    });
+  }
+
+  if (startDate && endDate) {
+    baseQuery.andWhereBetween('patient.created_at', [startDate, endDate]);
+  }
+
+  baseQuery
+    .orderBy('patient.created_at', 'desc')
+    .offset(page * size)
+    .limit(size);
+
+  // Count query
+  const countQuery = knex
     .count('* as total')
     .from(`${MODULE.PATIENT_MODULE.PATIENT} as patient`)
     .leftJoin(
-      `${MODULE.PATIENT_MODULE.TENANT_BRANCH} as ptb`,
-      'patient.id',
-      '=',
-      'ptb.patient'
+      `${MODULE.BACK_OFFICE.USER} as bou`,
+      'patient.back_office_user',
+      'bou.id'
     )
     .where({
-      'patient.tenant': params.tenant,
+      'patient.tenant': tenant,
       'patient.is_deleted': false,
-    })
-    .andWhere((qb) => {
-      if (params.branch) {
-        qb.andWhere('ptb.branch', params.branch);
-      }
-    })
-    .andWhere((qb) => {
-      if (params.search) {
-        qb.orWhere('patient.name', 'ilike', `%${params.search || ''}%`).orWhere(
-          'patient.email',
-          'ilike',
-          `%${params.search || ''}%`
-        );
-      }
+      'patient.is_active': true,
     });
 
-  const [error, result] = await promiseHandler(promise);
-  const [countError, countResult] = await promiseHandler(countPromise);
+  if (id) {
+    countQuery.andWhere('bou.id', id);
+  }
+
+  if (search) {
+    countQuery.andWhere((qb) => {
+      qb.where('patient.name', 'ilike', `%${search}%`).orWhere(
+        'patient.email',
+        'ilike',
+        `%${search}%`
+      );
+    });
+  }
+
+  if (startDate && endDate) {
+    countQuery.andWhereBetween('patient.created_at', [startDate, endDate]);
+  }
+
+  const [error, result] = await promiseHandler(baseQuery);
+  const [countError, countResult] = await promiseHandler(countQuery);
 
   if (error || countError) {
-    const newError = new Error(`something went wrong`);
-    newError.detail = `something went wrong`;
+    const newError = new Error(`Something went wrong`);
     newError.code = HTTP_STATUS.INTERNAL_SERVER_ERROR;
     throw newError;
   }
 
   if (!result || !countResult) {
-    const newError = new Error(`No employee found`);
-    newError.detail = `No employee found`;
+    const newError = new Error(`No patient found`);
     newError.code = HTTP_STATUS.BAD_REQUEST;
     throw newError;
   }
@@ -92,6 +111,9 @@ const list = async (req, params) => {
 const create = async (req, body, params) => {
   /** @type {import('knex').Knex} */
   const knex = req.knex;
+
+  // console.log('params -->', params);
+  // return;
 
   return knex.transaction(async (trx) => {
     try {
@@ -137,6 +159,7 @@ const create = async (req, body, params) => {
           occupation: body.occupation,
           avatar: body.avatar,
           tenant: params.tenant,
+          backOfficeUser: params.id,
         })
         .returning('*');
 

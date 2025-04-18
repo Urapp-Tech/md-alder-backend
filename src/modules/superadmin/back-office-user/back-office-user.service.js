@@ -114,7 +114,7 @@ const create = async (req, params) => {
     ...req.body,
     avatar: logoUrl,
   };
-  const promise = model.docCreate(req, updatedData, params);
+  const promise = model.superAdminDocCreate(req, updatedData, params);
 
   const [error, result] = await promiseHandler(promise);
   if (error) {
@@ -131,7 +131,24 @@ const create = async (req, params) => {
 };
 
 const update = async (req, params) => {
-  const promise = model.update(req, req.body, params);
+  let logoUrl;
+  if (req.body.avatar) {
+    const fileData = {
+      Key: `menu/${uuidv4()}-${req.body.avatar.filename}`,
+      Body: req.body.avatar.buffer,
+      'Content-Type': req.body.avatar.mimetype,
+    };
+    try {
+      logoUrl = await req.s3Upload(fileData);
+    } catch (error) {
+      throw new Error(`Failed to upload logo to S3 ${error.message}`);
+    }
+  }
+  const updatedData = {
+    ...req.body,
+    avatar: logoUrl,
+  };
+  const promise = model.superAdminDocUpdate(req, updatedData, params);
 
   const [error, result] = await promiseHandler(promise);
   if (error) {
@@ -139,11 +156,10 @@ const update = async (req, params) => {
     err.code = error.code ?? HTTP_STATUS.INTERNAL_SERVER_ERROR;
     throw err;
   }
-  // console.log('ressss', result);
 
   return {
     code: HTTP_STATUS.OK,
-    message: 'User has been updated successfully.',
+    message: 'Doctor has been updated successfully.',
     data: { ...result },
   };
 };

@@ -396,6 +396,45 @@ const superAdminDocCreate = async (req, body, params) => {
   });
 };
 
+const superAdminDocUpdate = async (req, body, params) => {
+  const { email, phone } = body;
+
+  /** @type {import('knex').Knex} */
+  const knex = req.knex;
+
+  const existingUser = await knex(MODULE.BACK_OFFICE.USER)
+    .leftJoin(
+      `${MODULE.BACK_OFFICE.USER_TENANT_BRANCH} as butb`,
+      'back_Office_user.id',
+      'butb.back_office_user'
+    )
+    .where((builder) => {
+      if (email) builder.orWhere({ 'back_office_user.email': email });
+      if (phone) builder.orWhere({ 'back_office_user.phone': phone });
+    })
+    .andWhere({
+      'back_office_user.is_deleted': false,
+      'back_office_user.user_type': 'USER',
+      'butb.branch': params.branch,
+    })
+    .andWhereNot('back_office_user.id', params.userId)
+    .first();
+
+  if (existingUser) {
+    errorHandler(
+      `An employee with the email / phone already exists.`,
+      HTTP_STATUS.BAD_REQUEST
+    );
+  }
+
+  const [updatedEmployee] = await knex(MODULE.BACK_OFFICE.USER)
+    .update(body)
+    .where('id', params.userId)
+    .returning('*');
+
+  return updatedEmployee;
+};
+
 const update = async (req, body, params) => {
   const { email, phone } = body;
 
@@ -406,18 +445,18 @@ const update = async (req, body, params) => {
     .leftJoin(
       `${MODULE.BACK_OFFICE.USER_TENANT_BRANCH} as butb`,
       'back_Office_user.id',
-      'butb.back_Office_user'
+      'butb.back_office_user'
     )
     .where((builder) => {
-      if (email) builder.orWhere({ 'back_Office_user.email': email });
-      if (phone) builder.orWhere({ 'back_Office_user.phone': phone });
+      if (email) builder.orWhere({ 'back_office_user.email': email });
+      if (phone) builder.orWhere({ 'back_office_user.phone': phone });
     })
     .andWhere({
-      'back_Office_user.is_deleted': false,
-      'back_Office_user.user_type': 'USER',
+      'back_office_user.is_deleted': false,
+      'back_office_user.user_type': 'USER',
       'butb.branch': params.branch,
     })
-    .andWhereNot('back_Office_user.id', params.userId)
+    .andWhereNot('back_office_user.id', params.userId)
     .first();
 
   if (existingUser) {
@@ -454,4 +493,5 @@ export default {
   deleteUser,
   superAdminDocList,
   superAdminDocCreate,
+  superAdminDocUpdate,
 };

@@ -24,7 +24,7 @@ const defaultTheme = async (req, params) => {
 
   const [error, result] = await promiseHandler(promise);
 
-  console.log('resss theme', result);
+  // console.log('resss theme', result);
 
   if (error) {
     const err = new Error(error.detail ?? error.message);

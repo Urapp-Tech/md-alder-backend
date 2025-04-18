@@ -3,15 +3,17 @@ import { Type } from '@sinclair/typebox';
 const swagger = {
   list: {
     schema: {
-      description: `this will list Employees`,
-      tags: ['ADMIN|Employee'],
-      summary: `Employees with pagination`,
-      operationId: 'FetchEmployee',
+      description: `this will list Patients`,
+      tags: ['ADMIN|Patients'],
+      summary: `Patients with pagination`,
+      operationId: 'FetchPatients',
       querystring: Type.Object(
         {
           page: Type.Integer({ default: 0, minimum: 0 }),
           size: Type.Integer({ default: 10, minimum: 10 }),
           search: Type.Optional(Type.String()),
+          startDate: Type.Optional(Type.String()),
+          endDate: Type.Optional(Type.String()),
         },
         { additionalProperties: false }
       ),
@@ -134,6 +136,7 @@ const swagger = {
         imgCaption2: Type.Optional(Type.String()),
         imgCaption3: Type.Optional(Type.String()),
         avatar: Type.Optional(Type.Any({ isFile: true })),
+        lab: Type.Optional(Type.Any({ isFile: true })),
       },
       { additionalProperties: false }
     ),

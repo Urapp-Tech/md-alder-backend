@@ -146,15 +146,22 @@ const listVisit = async (req, params) => {
 
 const createVisit = async (req, params) => {
   let avatarUrls = [];
+  let labUrls = [];
+
   let avatarFiles = Array.isArray(req.body.avatar)
     ? req.body.avatar
     : [req.body.avatar];
+
+  let labFiles = Array.isArray(req.body.lab) ? req.body.lab : [req.body.lab];
 
   const captions = [
     req.body.imgCaption1 || '',
     req.body.imgCaption2 || '',
     req.body.imgCaption3 || '',
   ];
+
+  avatarFiles = avatarFiles.filter(Boolean);
+  labFiles = labFiles.filter(Boolean);
 
   if (avatarFiles.length) {
     try {
@@ -174,14 +181,34 @@ const createVisit = async (req, params) => {
     }
   }
 
+  if (labFiles.length) {
+    try {
+      const uploadPromises = labFiles.map(async (file) => {
+        const fileData = {
+          Key: `menu/${uuidv4()}-${file.filename}`,
+          Body: file.buffer,
+          'Content-Type': file.mimetype,
+        };
+        const fileUrl = await req.s3Upload(fileData);
+        return { url: fileUrl || '' };
+      });
+
+      labUrls = await Promise.all(uploadPromises);
+    } catch (error) {
+      throw new Error(`Failed to upload avatars to S3: ${error.message}`);
+    }
+  }
+
   const updatedData = {
     ...req.body,
     tenant: params.tenant,
     patient: req.body.patient,
     prescriptions: req.body.prescriptions,
     scanMedia: JSON.stringify(avatarUrls),
+    labMedia: JSON.stringify(labUrls),
   };
   delete updatedData.avatar;
+  delete updatedData.lab;
   delete updatedData.imgCaption1;
   delete updatedData.imgCaption2;
   delete updatedData.imgCaption3;

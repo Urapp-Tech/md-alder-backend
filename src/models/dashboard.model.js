@@ -4,7 +4,9 @@ import MODULE from '#utilities/module-names';
 import promiseHandler from '#utilities/promise-handler';
 
 const activity = async (req, params) => {
-  const { branch, tenant } = params;
+  const { tenant, id } = params;
+
+  console.log('params', id);
 
   /** @type {import('knex').Knex} */
   const knex = req.knex;
@@ -19,23 +21,40 @@ const activity = async (req, params) => {
   //     isDeleted: false,
   //   });
 
-  const doctorCountPromise = knex
-    .count('* as total')
-    .from(`${MODULE.DOCTOR}`)
+  // const doctorCountPromise = knex
+  //   .count('* as total')
+  //   .from(`${MODULE.DOCTOR}`)
+  //   .where({
+  //     tenant,
+  //     // branch,
+  //     isActive: true,
+  //     isDeleted: false,
+  //   });
+
+  const allPatientsPromise = knex(`${MODULE.PATIENT_MODULE.PATIENT} as p`)
+    .leftJoin(
+      `${MODULE.BACK_OFFICE.USER} as bou`,
+      'p.back_office_user',
+      'bou.id'
+    )
+    .select('p.*')
     .where({
-      tenant,
-      // branch,
-      isActive: true,
-      isDeleted: false,
-    });
+      'p.tenant': tenant,
+      'p.is_deleted': false,
+    })
+    .andWhere((qb) => {
+      if (id) qb.andWhere('bou.id', id);
+    })
+    .orderBy('p.created_at', 'desc')
+    .limit(4);
 
   const patientCountPromise = knex
     .from(`${MODULE.PATIENT_MODULE.PATIENT} as p`)
     .leftJoin(
-      `${MODULE.PATIENT_MODULE.TENANT_BRANCH} as ptb`,
-      'p.id',
+      `${MODULE.BACK_OFFICE.USER} as bou`,
+      'p.back_office_user',
       '=',
-      'ptb.patient'
+      'bou.id'
     )
     .where({
       'p.tenant': tenant,
@@ -43,8 +62,8 @@ const activity = async (req, params) => {
       'p.is_active': true,
     })
     .andWhere((qb) => {
-      if (branch) {
-        qb.andWhere('ptb.branch', branch);
+      if (id) {
+        qb.andWhere('bou.id', id);
       }
     })
     .select([
@@ -54,21 +73,39 @@ const activity = async (req, params) => {
       ),
     ]);
 
+  const genderStatsPromise = knex(`${MODULE.PATIENT_MODULE.PATIENT} as p`)
+    .leftJoin(
+      `${MODULE.BACK_OFFICE.USER} as bou`,
+      'p.back_office_user',
+      'bou.id'
+    )
+    .select([
+      knex.raw("TO_CHAR(p.created_at, 'Mon') AS month"),
+      'p.gender',
+      knex.raw('COUNT(*) AS total'),
+    ])
+    .where({
+      'p.tenant': tenant,
+      'p.is_deleted': false,
+      'p.is_active': true,
+    })
+    .andWhere((qb) => {
+      if (id) qb.andWhere('bou.id', id);
+    })
+    .groupByRaw('month, p.gender')
+    .orderByRaw('MIN(p.created_at)');
+
   const [
-    // [cabinCountError, cabinCountResult],
-    [doctorCountError, doctorCountResult],
     [patientCountError, patientCountResult],
+    [allPatientsError, allPatientsResult],
+    [genderStatsError, genderStatsResult],
   ] = await Promise.all([
-    // promiseHandler(cabinCountPromise),
-    promiseHandler(doctorCountPromise),
     promiseHandler(patientCountPromise),
+    promiseHandler(allPatientsPromise),
+    promiseHandler(genderStatsPromise),
   ]);
 
-  if (
-    // cabinCountError ||
-    doctorCountError ||
-    patientCountError
-  ) {
+  if (genderStatsError || allPatientsError || patientCountError) {
     errorHandler(`Something went wrong`, HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
 
@@ -76,11 +113,13 @@ const activity = async (req, params) => {
 
   return {
     // totalActiveCabins: Number(cabinCountResult[0]?.total || 0),
-    totalDoctors: Number(doctorCountResult[0]?.total || 0),
+    // totalDoctors: Number(doctorCountResult[0]?.total || 0),
     patients: {
       total: Number(patientCountResult[0]?.totalpatients || 0),
       last7DaysPatients: Number(patientCountResult[0]?.last7Dayspatients || 0),
     },
+    allPatients: allPatientsResult,
+    genderStats: genderStatsResult,
   };
 };
 

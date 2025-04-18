@@ -13,6 +13,11 @@ const backOfficeUserRoutes = (fastify, options, done) => {
     { schema: schema.docCreate, onRequest: [fastify.authenticateAccess] },
     controller.create
   );
+  fastify.post(
+    '/update/:userId',
+    { schema: schema.docUpdate, onRequest: [fastify.authenticateAccess] },
+    controller.update
+  );
 
   done();
 };
