@@ -46,7 +46,7 @@ function ajvFilePlugin(ajv) {
 
 const server = fastify({
   logger: false,
-  genReqId: () => crypto.randomUUID(),
+  // genReqId: () => crypto.randomUUID(),
   ajv: {
     plugins: [ajvFilePlugin],
     customOptions: {
