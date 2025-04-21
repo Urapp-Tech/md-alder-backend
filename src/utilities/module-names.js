@@ -37,6 +37,7 @@ export default Object.freeze({
   TENANT_CONFIG: 'tenant_config',
   DOCTOR: 'doctor',
   FORM_FIELDS: 'form_fields',
+  SCAN_DISEASE: 'scan_disease',
   THEME: 'theme',
   PERMISSION: 'permission',
   ROLE: 'role',

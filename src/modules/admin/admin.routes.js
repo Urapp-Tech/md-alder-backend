@@ -7,6 +7,7 @@ import operationCategoryRoutes from './operation-category/operation-category.rou
 import operationReportRoutes from './operation-report/operation-report.routes.js';
 import settingRoutes from './setting/setting.routes.js';
 import formFieldsRoutes from './form-fields/form-field.routes.js';
+import scanDiseaseRoutes from './scan-disease/scan-disease.routes.js';
 
 const adminRoutes = (fastify, options, done) => {
   fastify.register(backOfficeUserRoutes, { prefix: '/back-office-user' });
@@ -20,6 +21,7 @@ const adminRoutes = (fastify, options, done) => {
   });
   fastify.register(operationReportRoutes, { prefix: '/operation-report' });
   fastify.register(formFieldsRoutes, { prefix: '/form-field' });
+  fastify.register(scanDiseaseRoutes, { prefix: '/scan-disease' });
 
   done();
 };
