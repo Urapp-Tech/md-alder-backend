@@ -61,9 +61,10 @@ const create = async (req, params) => {
     // Check if the parent permission already exists
     const existingPermission = await trx(MODULE.PERMISSION)
       .select('*')
-      .where('name', body.name);
+      .whereRaw('LOWER(name) = ?', [body.name.toLowerCase()])
+      .andWhere('permissionParent', null);
 
-    if (existingPermission.length > 0) {
+    if (existingPermission.length) {
       errorHandler('Permission Already Exist.', HTTP_STATUS.BAD_REQUEST);
     }
 
@@ -94,10 +95,11 @@ const create = async (req, params) => {
     for (const [index, item] of body.data.entries()) {
       const exists = await trx(MODULE.PERMISSION)
         .where('name', item.name)
+        .andWhere('id', createdParent.id)
         .first();
 
       if (exists) {
-        errorHandler('Permission Already Exist.', HTTP_STATUS.BAD_REQUEST);
+        errorHandler('Permission Already Existss.', HTTP_STATUS.BAD_REQUEST);
       }
 
       childPermissions.push({
