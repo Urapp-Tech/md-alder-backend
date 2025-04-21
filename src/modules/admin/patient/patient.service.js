@@ -86,7 +86,7 @@ const update = async (req, params) => {
 
   return {
     code: HTTP_STATUS.OK,
-    message: 'Employee has been updated successfully.',
+    message: 'Patient has been updated successfully.',
     data: { ...result },
   };
 };

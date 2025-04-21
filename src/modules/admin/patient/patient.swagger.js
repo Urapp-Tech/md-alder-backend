@@ -28,14 +28,13 @@ const swagger = {
     body: Type.Object(
       {
         name: Type.String(),
-        email: Type.Optional(
-          Type.Union([Type.String({ format: 'email' }), Type.Literal('')])
-        ),
+        email: Type.Union([Type.String({ format: 'email' }), Type.Literal('')]),
         phone: Type.String(),
         gender: Type.String(),
-        age: Type.Optional(Type.String()),
+        age: Type.String(),
         address: Type.Optional(Type.String()),
         occupation: Type.Optional(Type.String()),
+        desc: Type.Optional(Type.String()),
         avatar: Type.Optional(Type.Any({ isFile: true })),
       },
       { additionalProperties: false }
@@ -49,17 +48,15 @@ const swagger = {
     consumes: ['multipart/form-data'],
     params: Type.Object(
       {
-        empId: Type.String({ format: 'uuid' }),
+        pId: Type.String({ format: 'uuid' }),
       },
-      { required: 'empId' },
+      { required: 'pId' },
       { additionalProperties: false }
     ),
     body: Type.Object(
       {
         name: Type.String(),
-        email: Type.Optional(
-          Type.Union([Type.String({ format: 'email' }), Type.Literal('')])
-        ),
+        email: Type.Union([Type.String({ format: 'email' }), Type.Literal('')]),
         phone: Type.String(),
         cardNumber: Type.Optional(Type.String()),
         address: Type.Optional(Type.String()),

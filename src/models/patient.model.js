@@ -157,6 +157,7 @@ const create = async (req, body, params) => {
           phone: body.phone || null,
           address: body.address,
           occupation: body.occupation,
+          desc: body.desc,
           avatar: body.avatar,
           tenant: params.tenant,
           backOfficeUser: params.id,
@@ -181,43 +182,51 @@ const create = async (req, body, params) => {
 };
 
 const update = async (req, body, params) => {
-  const { _email, _phone } = body;
+  console.log('params', params);
 
   /** @type {import('knex').Knex} */
   const knex = req.knex;
+  try {
+    return knex.transaction(async (trx) => {
+      const existingPatient = await trx(MODULE.PATIENT_MODULE.PATIENT)
+        .leftJoin(
+          MODULE.PATIENT_MODULE.TENANT_BRANCH,
+          'patient.id',
+          'patient_tenant_branch.patient'
+        )
+        .where('patient.id', '!=', params.pId)
+        .andWhere('patient.is_deleted', false)
+        .andWhere('patient_tenant_branch.branch', params.branch)
+        .andWhere((builder) => {
+          if (body.email && body.phone) {
+            builder
+              .where('patient.email', body.email)
+              .orWhere('patient.phone', body.phone);
+          } else if (body.email) {
+            builder.where('patient.email', body.email);
+          } else if (body.phone) {
+            builder.where('patient.phone', body.phone);
+          }
+        })
+        .first();
 
-  const existingPatient = await knex(MODULE.PATIENT_MODULE.PATIENT)
-    .leftJoin(
-      MODULE.PATIENT_MODULE.TENANT_BRANCH,
-      'employee.id',
-      'employee_tenant_branch.employee'
-    )
-    .where((builder) => {
-      if (body.email) builder.orWhere({ 'employee.email': body.email });
-      if (body.phone) builder.orWhere({ 'employee.phone': body.phone });
-      if (body.cardNumber)
-        builder.orWhere({ 'employee.card_number': body.cardNumber });
-    })
-    .andWhere({
-      'employee.is_deleted': false,
-      'employee_tenant_branch.branch': params.branch,
-    })
-    .andWhereNot('employee.id', params.empId)
-    .first();
+      if (existingPatient) {
+        const errorMessage = `The Email/Phone is already registered to another patient.`;
+        errorHandler(errorMessage, HTTP_STATUS.BAD_REQUEST);
+      }
+      const [updatedEmployee] = await knex(MODULE.PATIENT_MODULE.PATIENT)
+        .update(body)
+        .where('id', params.pId)
+        .returning('*');
 
-  if (existingPatient) {
+      return updatedEmployee;
+    });
+  } catch (error) {
     errorHandler(
-      `An employee with the email/phone/card-number already exists.`,
+      `Error creating employee: ${error.message}`,
       HTTP_STATUS.BAD_REQUEST
     );
   }
-
-  const [updatedEmployee] = await knex(MODULE.ADMIN.EMPLOYEE)
-    .update(body)
-    .where('id', params.empId)
-    .returning('*');
-
-  return updatedEmployee;
 };
 
 const deleteEmp = async (req, params) => {

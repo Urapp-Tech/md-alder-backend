@@ -392,6 +392,7 @@ const superAdminDocCreate = async (req, body, params) => {
           role: body.role,
           avatar: body.avatar,
           gender: body.gender,
+          age: body.age,
           designation: body.designation,
           expertise: body.expertise,
           boardCertification: body.boardCertification,

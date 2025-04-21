@@ -13,7 +13,7 @@ const patientRoutes = (fastify, options, done) => {
     controller.create
   );
   fastify.post(
-    '/update/:empId',
+    '/update/:pId',
     { schema: schema.update, onRequest: [fastify.authenticateAccess] },
     controller.update
   );
