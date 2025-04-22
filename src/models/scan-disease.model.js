@@ -85,79 +85,7 @@ const create = async (req, body, params) => {
   }
 };
 
-const update = async (req, body, params) => {
-  /** @type {import('knex').Knex} */
-  const knex = req.knex;
-
-  const existing = await knex(MODULE.FORM_FIELDS)
-    .where((builder) => {
-      if (body.title) builder.orWhere({ 'form_fields.title': body.title });
-      if (body.type) builder.orWhere({ 'form_fields.type': body.type });
-    })
-    .andWhere({
-      'form_fields.is_deleted': false,
-    })
-    .andWhereNot('form_fields.id', params.id)
-    .first();
-
-  if (existing) {
-    errorHandler(`Title / Type already exists.`, HTTP_STATUS.BAD_REQUEST);
-  }
-
-  const [updatedEmployee] = await knex(MODULE.FORM_FIELDS)
-    .update(body)
-    .where('id', params.id)
-    .returning('*');
-
-  return updatedEmployee;
-};
-
-const deleteField = async (req, params) => {
-  /** @type {import('knex').Knex} */
-  const knex = req.knex;
-
-  return knex(MODULE.FORM_FIELDS)
-    .where('id', params.id)
-    .update({ isDeleted: true });
-};
-
-const lov = async (req, params) => {
-  /** @type {import('knex').Knex} */
-  const knex = req.knex;
-
-  try {
-    const employees = await knex
-      .select('employee.id', 'employee.name')
-      .from(`${MODULE.PATIENT_MODULE.PATIENT} as employee`)
-      .leftJoin(
-        `${MODULE.PATIENT_MODULE.TENANT_BRANCH} as etb`,
-        'employee.id',
-        'etb.employee'
-      )
-      .where({
-        'employee.tenant': params.tenant,
-        'employee.is_deleted': false,
-      })
-      .andWhere((qb) => {
-        if (params.branch) {
-          qb.andWhere('etb.branch', params.branch);
-        }
-      })
-      .orderBy('employee.name', 'asc');
-
-    return employees;
-  } catch (error) {
-    errorHandler(
-      `Error fetching employee LOV: ${error.message}`,
-      HTTP_STATUS.INTERNAL_SERVER_ERROR
-    );
-  }
-};
-
 export default {
   list,
   create,
-  update,
-  deleteField,
-  lov,
 };
