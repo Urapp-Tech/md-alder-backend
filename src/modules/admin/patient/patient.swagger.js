@@ -41,10 +41,10 @@ const swagger = {
     ),
   },
   update: {
-    description: 'this will update employee',
-    tags: ['ADMIN|Employee'],
-    summary: 'update employee',
-    operationId: 'UpdateEmployee',
+    description: 'this will update patient',
+    tags: ['ADMIN|Patient'],
+    summary: 'update patient',
+    operationId: 'UpdatePatient',
     consumes: ['multipart/form-data'],
     params: Type.Object(
       {
@@ -58,8 +58,11 @@ const swagger = {
         name: Type.String(),
         email: Type.Union([Type.String({ format: 'email' }), Type.Literal('')]),
         phone: Type.String(),
-        cardNumber: Type.Optional(Type.String()),
+        gender: Type.String(),
+        age: Type.String(),
         address: Type.Optional(Type.String()),
+        occupation: Type.Optional(Type.String()),
+        desc: Type.Optional(Type.String()),
         avatar: Type.Optional(Type.Any({ isFile: true })),
       },
       { additionalProperties: false }
