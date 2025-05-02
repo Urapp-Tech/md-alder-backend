@@ -31,6 +31,11 @@ const backOfficeUserRoutes = (fastify, options, done) => {
     { schema: schema.delete, onRequest: [fastify.authenticateAccess] },
     controller.deleteUser
   );
+  fastify.post(
+    '/get-opt',
+    { schema: schema.getOtp, onRequest: [fastify.authenticateAccess] },
+    controller.getOtp
+  );
 
   done();
 };

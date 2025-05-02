@@ -1,4 +1,5 @@
 import model from '#models/doctor.model';
+import { hashAsync } from '#utilities/bcrypt';
 import tenantConfigModel from '#models/tenant-config.model';
 import generateUserTokens from '#utilities/generate-user-tokens';
 import HTTP_STATUS from '#utilities/http-status';
@@ -193,29 +194,31 @@ const deleteUser = async (req, params) => {
 };
 
 const getOtp = async (req) => {
-  const findEmail = model.findByEmail(req, req.body.email);
+  const [error, result] = await promiseHandler(
+    model.findByEmail(req, req.body.email)
+  );
 
-  const [error, result] = await promiseHandler(findEmail);
   if (error) {
     const err = new Error(error.detail ?? error.message);
     err.code = error.code ?? HTTP_STATUS.INTERNAL_SERVER_ERROR;
     throw err;
   }
-  if (result) {
-    const err = new Error('email already exist');
-    err.code = error.code ?? HTTP_STATUS.CONFLICT;
+
+  if (!result) {
+    const err = new Error('This email not exist');
+    err.code = HTTP_STATUS.CONFLICT;
     throw err;
   }
-  const tenantConfigPromise = tenantConfigModel.getTenantConfigByTenantId(
-    req,
-    req.params.tenant
+
+  const [tenantConfigError, tenantConfigResult] = await promiseHandler(
+    tenantConfigModel.getTenantConfigByTenantId(req, result.tenant)
   );
 
-  const [tenantConfigError, tenantConfigResult] =
-    await promiseHandler(tenantConfigPromise);
   if (tenantConfigError) {
-    const err = new Error(error.detail ?? error.message);
-    err.code = error.code ?? HTTP_STATUS.INTERNAL_SERVER_ERROR;
+    const err = new Error(
+      tenantConfigError.detail ?? tenantConfigError.message
+    );
+    err.code = tenantConfigError.code ?? HTTP_STATUS.INTERNAL_SERVER_ERROR;
     throw err;
   }
 
@@ -230,6 +233,68 @@ const getOtp = async (req) => {
   return {
     code: HTTP_STATUS.OK,
     message: 'email sent successfully.',
+    data: { otp: otp, email: req.body.email },
+  };
+};
+
+const newPassword = async (req) => {
+  const { email, password } = req.body;
+
+  // Find user by email
+  const [findUserError, findUser] = await promiseHandler(
+    model.findByEmail(req, email)
+  );
+
+  if (findUserError) {
+    const err = new Error(findUserError.detail ?? findUserError.message);
+    err.code = findUserError.code ?? HTTP_STATUS.INTERNAL_SERVER_ERROR;
+    throw err;
+  }
+
+  if (!findUser) {
+    const err = new Error('User not found. Please check the registered email.');
+    err.code = HTTP_STATUS.NOT_FOUND;
+    throw err;
+  }
+
+  // Verify OTP
+  // const [otpError, isCorrectOTP] = await promiseHandler(
+  //   OTP.verifyOTP(email, otp)
+  // );
+
+  // if (otpError || !isCorrectOTP) {
+  //   const err = new Error('Invalid OTP, please check and try again.');
+  //   err.code = HTTP_STATUS.BAD_REQUEST;
+  //   throw err;
+  // }
+
+  // Prepare user data
+  const hashedPassword = await hashAsync(password);
+  const updatePayload = {
+    password: hashedPassword,
+    updatedAt: new Date(),
+  };
+
+  // Update user
+  const [updateError, updateResult] = await promiseHandler(
+    model.docUpdate(req, findUser.id, updatePayload)
+  );
+
+  if (updateError || !updateResult) {
+    const err = new Error(
+      'Unable to change your password, please check the payload.'
+    );
+    err.code = HTTP_STATUS.INTERNAL_SERVER_ERROR;
+    throw err;
+  }
+
+  return {
+    code: HTTP_STATUS.OK,
+    message: 'Your password has been changed successfully.',
+    data: {
+      id: findUser.id,
+      email: findUser.email,
+    },
   };
 };
 
@@ -241,4 +306,5 @@ export default {
   update,
   deleteUser,
   getOtp,
+  newPassword,
 };

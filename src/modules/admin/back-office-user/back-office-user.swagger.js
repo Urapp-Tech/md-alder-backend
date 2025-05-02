@@ -99,6 +99,18 @@ const swagger = {
       { additionalProperties: false }
     ),
   },
+  getOtp: {
+    description: 'this will create otp',
+    tags: ['ADMIN|User'],
+    summary: 'create otp',
+    operationId: 'CreateOTP',
+    body: Type.Object(
+      {
+        email: Type.String({ format: 'email' }),
+      },
+      { additionalProperties: false }
+    ),
+  },
 };
 
 export default swagger;

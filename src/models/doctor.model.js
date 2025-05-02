@@ -175,9 +175,21 @@ const findByEmail = async (req, email) => {
   /** @type {import('knex').Knex} */
   const knex = req.knex;
 
-  return knex(MODULE.DOCTOR)
+  return knex(MODULE.BACK_OFFICE.USER)
     .where({ email, isActive: true, isDeleted: false })
     .first();
+};
+
+const docUpdate = async (req, id, body) => {
+  /** @type {import('knex').Knex} */
+  const knex = req.knex;
+
+  const [updatedUser] = await knex(MODULE.BACK_OFFICE.USER)
+    .update(body)
+    .where('id', id)
+    .returning(['id', 'email']);
+
+  return updatedUser;
 };
 
 export default {
@@ -188,4 +200,5 @@ export default {
   update,
   deleteUser,
   findByEmail,
+  docUpdate,
 };

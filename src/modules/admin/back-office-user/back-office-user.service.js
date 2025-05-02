@@ -148,6 +148,23 @@ const deleteUser = async (req, params) => {
   };
 };
 
+const getOtp = async (req, params) => {
+  const promise = model.getOtp(req, params);
+
+  const [error, result] = await promiseHandler(promise);
+  if (error) {
+    const err = new Error(error.detail ?? error.message);
+    err.code = error.code ?? HTTP_STATUS.INTERNAL_SERVER_ERROR;
+    throw err;
+  }
+
+  return {
+    code: HTTP_STATUS.OK,
+    message: 'User has been created successfully.',
+    data: { ...result },
+  };
+};
+
 export default {
   login,
   logout,
@@ -155,4 +172,5 @@ export default {
   create,
   update,
   deleteUser,
+  getOtp,
 };

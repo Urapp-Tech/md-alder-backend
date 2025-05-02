@@ -2,12 +2,13 @@ import controller from './doctor.controller.js';
 import schema from './doctor.swagger.js';
 
 const doctorRoutes = (fastify, options, done) => {
-  fastify.post(
-    '/get-otp/:tenant',
-    { schema: schema.getOtp },
-    controller.getOtp
-  );
   fastify.post('/login', { schema: schema.login }, controller.login);
+  fastify.post('/get-otp', { schema: schema.getOtp }, controller.getOtp);
+  fastify.post(
+    '/new-password',
+    { schema: schema.newPassword },
+    controller.newPassword
+  );
   // fastify.post(
   //   '/logout',
   //   {

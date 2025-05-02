@@ -6,12 +6,6 @@ const swagger = {
     tags: ['APP|Doctor'],
     summary: 'send otp to email',
     operationId: 'DoctorGetOtp',
-    params: Type.Object(
-      {
-        tenant: Type.String({ format: 'uuid' }),
-      },
-      { additionalProperties: false }
-    ),
     body: Type.Object(
       {
         email: Type.String(),
@@ -133,6 +127,20 @@ const swagger = {
         doctorId: Type.String({ format: 'uuid' }),
       },
       { required: 'doctorId' },
+      { additionalProperties: false }
+    ),
+  },
+  newPassword: {
+    description: 'this will create new password',
+    tags: ['APP|Doctor'],
+    summary: 'create new password',
+    operationId: 'DoctorCreatePassword',
+    body: Type.Object(
+      {
+        email: Type.String(),
+        password: Type.String(),
+        otp: Type.String({ minLength: 4, maxLength: 4 }),
+      },
       { additionalProperties: false }
     ),
   },

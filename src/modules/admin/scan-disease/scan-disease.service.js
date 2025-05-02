@@ -51,7 +51,7 @@ const create = async (req, params) => {
 
   return {
     code: HTTP_STATUS.OK,
-    message: 'Form Field has been created successfully.',
+    message: 'Scan Analyze successfully.',
     data: { ...result },
   };
 };
