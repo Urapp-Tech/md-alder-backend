@@ -215,13 +215,7 @@ const deleteUser = async (req, res) => {
 const getOtp = async (req, res) => {
   const log = req.logger;
   log.verbose(`RequestId:: ${req.id}\nHandling ${req.method} ${req.url} Route`);
-  const params = {
-    ...req.user,
-    ...req.params,
-    ...req.query,
-  };
-
-  const promise = service.getOtp(req, params);
+  const promise = service.getOtp(req);
   const [error, result] = await promiseHandler(promise);
   if (error) {
     log.verbose(
@@ -230,7 +224,6 @@ const getOtp = async (req, res) => {
     log.error(
       `${error.message}\nRequestId:: ${req.id}\nTrace:: ${error.stack}`
     );
-
     return res.status(error.code).send({
       success: false,
       code: error.code,
@@ -240,12 +233,39 @@ const getOtp = async (req, res) => {
   log.verbose(
     `RequestId:: ${req.id}\nHandling Completed With Success On ${req.method} ${req.url} Route`
   );
-
   return res.status(result.code).send({
     success: true,
     code: result.code,
     message: result.message,
     data: result.data,
+  });
+};
+const newPassword = async (req, res) => {
+  const log = req.logger;
+  log.verbose(`RequestId:: ${req.id}\nHandling ${req.method} ${req.url} Route`);
+  const promise = service.newPassword(req);
+  const [error, result] = await promiseHandler(promise);
+  if (error) {
+    log.verbose(
+      `RequestId:: ${req.id}\nHandling Completed With Error On ${req.method} ${req.url} Route`
+    );
+    log.error(
+      `${error.message}\nRequestId:: ${req.id}\nTrace:: ${error.stack}`
+    );
+    return res.status(error.code).send({
+      success: false,
+      code: error.code,
+      message: error.message,
+    });
+  }
+
+  log.verbose(
+    `RequestId:: ${req.id}\nHandling Completed With Success On ${req.method} ${req.url} Route`
+  );
+  return res.status(result.code).send({
+    success: true,
+    code: result.code,
+    message: result.message,
   });
 };
 
@@ -257,4 +277,5 @@ export default {
   update,
   deleteUser,
   getOtp,
+  newPassword,
 };

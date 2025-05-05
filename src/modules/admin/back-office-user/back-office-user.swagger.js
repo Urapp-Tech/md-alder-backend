@@ -100,13 +100,27 @@ const swagger = {
     ),
   },
   getOtp: {
-    description: 'this will create otp',
-    tags: ['ADMIN|User'],
-    summary: 'create otp',
-    operationId: 'CreateOTP',
+    description: 'this will send otp to email',
+    tags: ['APP|User'],
+    summary: 'send otp to email',
+    operationId: 'UserGetOtp',
     body: Type.Object(
       {
-        email: Type.String({ format: 'email' }),
+        email: Type.String(),
+      },
+      { additionalProperties: false }
+    ),
+  },
+  newPassword: {
+    description: 'this will create new password',
+    tags: ['APP|User'],
+    summary: 'create new password',
+    operationId: 'UserCreatePassword',
+    body: Type.Object(
+      {
+        email: Type.String(),
+        password: Type.String(),
+        otp: Type.String({ minLength: 4, maxLength: 4 }),
       },
       { additionalProperties: false }
     ),

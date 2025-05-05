@@ -3,6 +3,12 @@ import schema from './back-office-user.swagger.js';
 
 const backOfficeUserRoutes = (fastify, options, done) => {
   fastify.post('/login', { schema: schema.login }, controller.login);
+  fastify.post('/get-otp', { schema: schema.getOtp }, controller.getOtp);
+  fastify.post(
+    '/new-password',
+    { schema: schema.newPassword },
+    controller.newPassword
+  );
   fastify.post(
     '/logout',
     {
